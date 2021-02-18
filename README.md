@@ -5,7 +5,7 @@ Python based traverser.
 ## Introduction
 
 This tool is developed for people who embrace terminal, dislike graphical tools as much as me(Cenk).
-It allows 
+It allows users to dump the tree structure of a mds tree to terminal.
 
 ## MDS Python versions
 

@@ -13,6 +13,20 @@ It's tested with mdsplus version in tcvdata, lacs, and current stable branch of 
 MDS python interface has been improved in recent years, so with the mdsplus-stable, the speed is
 significantly better.
 
+## Capabilities and Limitations
+
+* The ptraverser shows the "RECORD", and not the "DATA" of nodes. It basically shows what you'd see
+  in traverser/jTraverser or what is returned by `getnci("PATH","RECORD")`.
+* The tree nodes has many extra attributes, ptraverser only shows some of them.
+* If a tree contains raw data, it may use a lot of memory, and output may be too large. For
+  instance, don't use it to show data in a raw tree. If you want to see only the structure of such
+  a tree, you can use `--wdata 0` (which will make it not even read the data for the nodes)
+* It can show tags for each node, and something called "Alternative path". This is useful if there
+  is multiple ways to access a node, due to tags set at different levels.
+* If you want to traverse a tree progressively, use `--maxdepth,-m` option (`-m 1`), then at
+  next run, you can traverse only in the node you want to see using `--startnode,-S` option
+  (See examples)
+
 ## Examples
 
 Common examples
@@ -33,13 +47,25 @@ Common examples
 ./ptraverser.py -t atlas -S HARDWARE.TCPIP -f -m 1
 
 # Traverse HARDWARE.TCPIP node of ATLAS tree, maximum depth 1, don't show ON/OFF status
-./ptraverser.py -t atlas -S HARDWARE.TCPIP -f -m 1
+./ptraverser.py -t atlas -S HARDWARE.TCPIP -f -m 1 --hide-onoff
+
+# Traverse HARDWARE.TCPIP node of ATLAS tree, don't traverse in the nodes that are OFF
+./ptraverser.py -t atlas -S HARDWARE.TCPIP --dont-traverse-off-nodes
 
 # Traverse MEASUREMENTS node of ECRH tree for shot 65400
 ./ptraverser.py -t ecrh -S MEASUREMENTS -s 65400
 
 # Traverse MEASUREMENTS node of ECRH tree, hide tag and alt-path fields, limit data field to 100 chars
 ./ptraverser.py -t ecrh -S MEASUREMENTS  --wtag 0 --walt 0 --wdata 100
+```
+
+Example for progressive traversing into a tree using `--maxdepth,-m`
+```shell
+# Traverser atlas HARDWARE.TCPIP node only 1 level. This will reveal all dtacq nodes
+./ptraverser.py -t atlas -S HARDWARE.TCPIP -m 1 -f --wusage 0 --wdata 0 --walt 0 --wtag 0
+
+# Get the name from output of last command and traverse into specific dtacq node
+./ptraverser.py -t atlas -S HARDWARE.TCPIP.DT_MIX_001
 ```
 
 Example for comparing tree structure/data from 2 shots. 

@@ -208,8 +208,8 @@ def main():
     formatargs.add_argument('--wnode', help="Width of node field", type=int, default=-1)
     formatargs.add_argument('--wusage', help="Width of usage field", type=int, default=-1)
     formatargs.add_argument('--wtag', help="Width of tag field", type=int, default=-1)
-    formatargs.add_argument('--walt', help="Width of alternate path field. This field is not a standard MDS feature. It's calculated from "
-                                           "tags of parents.", type=int, default=-1)
+    formatargs.add_argument('--walt', help="Width of alternate path field. This is not a standard MDS feature. It's calculated from "
+                                           "tags of parents. This field is kind of experimental, and off by default", type=int, default=0)
     formatargs.add_argument('--wdata', help="Width of data field", type=int, default=-1)
     formatargs.add_argument('--hide-onoff', help="Don't show on-off status", action='store_true')
 

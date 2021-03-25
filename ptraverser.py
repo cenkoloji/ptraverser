@@ -7,6 +7,7 @@ from __future__ import print_function  # For python3 compatibility
 
 import sys
 import traceback
+import re
 import MDSplus
 
 class IgnoreData(Exception): # Thrown if getdata=False in traverseTree
@@ -67,7 +68,8 @@ def traverseTree(rootNode,
                  output = [],
                  maxdepth = -1,
                  notraverseoff=False,
-                 lastnode = False):
+                 lastnode = False,
+                 regex = ""):
     """ Recursive function to traverse through a tree and print information about nodes
 
         Arguments:
@@ -81,6 +83,7 @@ def traverseTree(rootNode,
         output -- List of NodeOutput objects, this is the main object that will be used by top level caller
         notraverseoff -- If true, It won't traverse deeper into nodes that are OFF
         lastnode -- true if it's last child/member of a node. internally used for output formatting
+        regex -- regex pattern to match the node name
     """
     if depth > maxdepth and maxdepth >= 0:
         return 0
@@ -114,8 +117,6 @@ def traverseTree(rootNode,
     except:
         data = "-"
 
-
-
     delimiter = ":"
     ischild = rootNode.isChild()
     if ischild:
@@ -144,10 +145,16 @@ def traverseTree(rootNode,
 
     isoff = not rootNode.isOn()
 
-    # minpath = MDSplus.TdiExecute('GETNCI(' + rootLocalPath + ' ,"MINPATH")')  # Doesn't work on some mdsplus versions, throws mdsExceptions.TreeNOT_OPEN
-    n = NodeOutput(name = rootName, fullpath=rootLocalPath , usage=usagestr, tag=str(tagstr), alt=str(altpaths), data=data, depth=depth, last = lastnode, child = ischild, off = isoff)
+    ignore_node = False
+    # Ignore node, and don't add to output if it doesn't match regex, but still go on traversing further down
+    if regex: # Regex matching - experimental
+        if not(re.match(regex,rootName)):
+            ignore_node = True
 
-    output.append(n)
+    if not ignore_node:
+        # minpath = MDSplus.TdiExecute('GETNCI(' + rootLocalPath + ' ,"MINPATH")')  # Doesn't work on some mdsplus versions, throws mdsExceptions.TreeNOT_OPEN
+        n = NodeOutput(name = rootName, fullpath=rootLocalPath , usage=usagestr, tag=str(tagstr), alt=str(altpaths), data=data, depth=depth, last = lastnode, child = ischild, off = isoff)
+        output.append(n)
 
     if notraverseoff and isoff:
         return
@@ -165,7 +172,7 @@ def traverseTree(rootNode,
                 last = True
             nextnode = subnodes[i]
 
-            traverseTree(rootNode=nextnode, depth=depth+1, getdata=getdata, getusage=getusage, gettags=gettags, parentFullPath=rootLocalPath, parentpaths=tagstr+altpaths, output=output, maxdepth=maxdepth, lastnode=last, notraverseoff=notraverseoff)
+            traverseTree(rootNode=nextnode, depth=depth+1, getdata=getdata, getusage=getusage, gettags=gettags, parentFullPath=rootLocalPath, parentpaths=tagstr+altpaths, output=output, maxdepth=maxdepth, lastnode=last, notraverseoff=notraverseoff, regex=regex)
     except:
        traceback_string = traceback.format_exc()
        print(traceback_string,file=sys.stderr)
@@ -180,6 +187,8 @@ def main():
     parser.add_argument('-w','--wildcard', help="Wildcard pattern. Each node that match the pattern will be traversed and " 
                                                 "results will be presented together. The pattern should be such that it "
                                                 "is natively recognized by TDI functions like getnci().", default='')
+    parser.add_argument('-r','--regex', help="[EXPERIMENTAL] Regex pattern that match the node name (NOT the full path or tag). "
+                                             "For efficiency, it can be used in combination with --wildcard ", default='')
     parser.add_argument('-s','--shot', help="Shot number", type=int, default=-1)
 
     parser.add_argument('-m','--maxdepth', help="Maximum depth to traverse, greater or equal -1 (-1 is infinite). "
@@ -237,8 +246,12 @@ def main():
 
     for node in nodes:
         results_partial = []
-        traverseTree(rootNode=node, getdata=getdata, getusage=getusage, gettags=gettags, output=results_partial, maxdepth=args.maxdepth, notraverseoff=args.dont_traverse_off_nodes);
+        traverseTree(rootNode=node, getdata=getdata, getusage=getusage, gettags=gettags, output=results_partial, maxdepth=args.maxdepth, notraverseoff=args.dont_traverse_off_nodes, regex=args.regex);
         results += results_partial
+
+    if len(results) == 0:
+        print("No nodes matched the pattern!")
+        sys.exit(0);
 
     # Calculate maximum possible lengths in each field
     wmaxnode = max([len(x.node_str(args.fullpaths)) for x in results])

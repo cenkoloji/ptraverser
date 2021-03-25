@@ -82,7 +82,7 @@ def traverseTree(rootNode,
         notraverseoff -- If true, It won't traverse deeper into nodes that are OFF
         lastnode -- true if it's last child/member of a node. internally used for output formatting
     """
-    if depth > maxdepth and maxdepth > 0:
+    if depth > maxdepth and maxdepth >= 0:
         return 0
 
     rootName = str(rootNode.getNodeName())
@@ -171,29 +171,36 @@ def traverseTree(rootNode,
        print(traceback_string,file=sys.stderr)
 
 def main():
-
     import argparse
     parser = argparse.ArgumentParser(description='Traverse through a mdsplus tree and print information',
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('-t','--tree', help="experiment tree to traverse", required=True)
-    parser.add_argument('-S','--startnode', help="Top node to start traversing from", default='')
+    parser.add_argument('-S','--startnode', help="Top node to start traversing from, takes a full path or tag", default='')
+    parser.add_argument('-w','--wildcard', help="Wildcard pattern. Each node that match the pattern will be traversed and " 
+                                                "results will be presented together. The pattern should be such that it "
+                                                "is natively recognized by TDI functions like getnci().", default='')
     parser.add_argument('-s','--shot', help="Shot number", type=int, default=-1)
 
-    parser.add_argument('-m','--maxdepth', help="Maximum depth to traverse, default is infinite", type=int, default=-1)
+    parser.add_argument('-m','--maxdepth', help="Maximum depth to traverse, greater or equal -1 (-1 is infinite). "
+                                                "If used together with --wildcard, depth applies to each indidivual "
+                                                "node that match the wildcard", type=int, default=-1)
 
     parser.add_argument('--dont-traverse-off-nodes', help="Do not traverse into a node if it's OFF", action="store_true")
 
     formatargs = parser.add_argument_group('Output formatting options. By default optimal width of each field will be dynamically calculated.'
-                                           'Setting any width to 0 will remove the field from output')
+                                           'Setting any width to 0 will remove the field from output, '
+                                           'setting it to -1 will calculate the width automatically. '
+                                           'Only data field will be truncated if needed.' )
 
     formatargs.add_argument('-f','--fullpaths', action='store_true',
-                        help='print fullpaths of each node')
+                        help='print fullpaths of each node. If not selected, output will be similar to linux program "tree"')
 
     formatargs.add_argument('--wnode', help="Width of node field", type=int, default=-1)
     formatargs.add_argument('--wusage', help="Width of usage field", type=int, default=-1)
     formatargs.add_argument('--wtag', help="Width of tag field", type=int, default=-1)
-    formatargs.add_argument('--walt', help="Width of alternate path field", type=int, default=-1)
+    formatargs.add_argument('--walt', help="Width of alternate path field. This field is not a standard MDS feature. It's calculated from "
+                                           "tags of parents.", type=int, default=-1)
     formatargs.add_argument('--wdata', help="Width of data field", type=int, default=-1)
     formatargs.add_argument('--hide-onoff', help="Don't show on-off status", action='store_true')
 
@@ -223,7 +230,15 @@ def main():
     gettags = False if args.wtag==0 and args.walt==0 else True
 
     results = []
-    traverseTree(rootNode=startNode, getdata=getdata, getusage=getusage, gettags=gettags, output=results, maxdepth=args.maxdepth, notraverseoff=args.dont_traverse_off_nodes);
+    if args.wildcard:
+        nodes = startNode.getNodeWild(args.wildcard)
+    else:
+        nodes = [startNode]
+
+    for node in nodes:
+        results_partial = []
+        traverseTree(rootNode=node, getdata=getdata, getusage=getusage, gettags=gettags, output=results_partial, maxdepth=args.maxdepth, notraverseoff=args.dont_traverse_off_nodes);
+        results += results_partial
 
     # Calculate maximum possible lengths in each field
     wmaxnode = max([len(x.node_str(args.fullpaths)) for x in results])

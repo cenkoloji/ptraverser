@@ -57,6 +57,14 @@ Common examples
 
 # Traverse MEASUREMENTS node of ECRH tree, hide tag and alt-path fields, limit data field to 100 chars
 ./ptraverser.py -t ecrh -S MEASUREMENTS  --wtag 0 --walt 0 --wdata 100
+
+# Traverse ATLAS tree, for wildcard pattern HARDWARE.TCPIP:DT_ECE_00*
+./ptraverser.py -t atlas -w HARDWARE.TCPIP:DT_ECE_00*
+./ptraverser.py -t atlas -S HARDWARE.TCPIP -w DT_ECE_00*  # Same result
+./ptraverser.py -t atlas -w \\DT4G_ECE_00*                # Same result
+
+# Show all nodes under atlas tree that has tag \DT196_*
+ptraverser.py -t atlas -w \\DT196* -m 0
 ```
 
 Example for progressive traversing into a tree using `--maxdepth,-m`

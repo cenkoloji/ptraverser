@@ -122,15 +122,6 @@ def traverseTree(rootNode,
     if ischild:
         delimiter = "."
 
-    if parentFullPath=="":
-        rootLocalPath = str(rootNode.getLocalPath())
-    else:
-        rootLocalPath = parentFullPath + delimiter + rootName
-
-    # Dump path in error stream, this allows following progress of program and see where it is stuck.
-    sys.stderr.flush()
-    sys.stderr.write("\r" + rootLocalPath + " "*30)
-
     try:
         if not getusage:
             raise IgnoreUsage
@@ -138,6 +129,21 @@ def traverseTree(rootNode,
         usagestr = str(usage)
     except:
         usagestr = "UNKNOWN"
+
+    if parentFullPath=="":  # This condition is met for the first node that is being traversed
+
+        # If we start from a subtree, get it's name as localpath
+        # TOP of original tree should still return empty
+        if usage == "SUBTREE" and rootName != "TOP":
+          rootLocalPath = "." + str(rootName)
+        else:
+          rootLocalPath = str(rootNode.getLocalPath())
+    else:
+        rootLocalPath = parentFullPath + delimiter + rootName
+
+    # Dump path in error stream, this allows following progress of program and see where it is stuck.
+    sys.stderr.flush()
+    sys.stderr.write("\r" + rootLocalPath + " "*30)
 
     altpaths = []
     if gettags:

@@ -69,7 +69,7 @@ Common examples
 # Show all nodes under atlas tree that has tag \DT196_*
 ptraverser.py -t atlas -w \\DT196* -m 0
 
-# Regex, matching, experimental feature:
+# Regex matching, experimental feature: It's much slower then wildcards
 # Traverse MIX dtacqs and show nodes that match DECIM_* or I_START
 ptraverser.py -t atlas -w HARDWARE.TCPIP:DT_MIX*:CHANNEL_*:* -m 0 -r "DECIM.*|I_START" -f 
 ptraverser.py -t atlas -w HARDWARE.TCPIP:DT_MIX* -r "DECIM.*|I_START" -f

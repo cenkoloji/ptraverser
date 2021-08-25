@@ -26,6 +26,9 @@ significantly better.
 * If you want to traverse a tree progressively, use `--maxdepth,-m` option (`-m 1`), then at
   next run, you can traverse only in the node you want to see using `--startnode,-S` option
   (See examples)
+* There is support for wildcards and regular expressions. Wildcards are very efficient as they are
+  natively supported by mdsplus. For details on wildcard examples,
+  see: https://mdsplus.org/index.php/Documentation:Users:Tree_syntax
 
 ## Examples
 

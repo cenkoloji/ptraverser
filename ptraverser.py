@@ -134,7 +134,7 @@ def traverseTree(rootNode,
 
         # If we start from a subtree, get it's name as localpath
         # TOP of original tree should still return empty
-        if usage == "SUBTREE" and rootName != "TOP":
+        if usagestr == "SUBTREE" and rootName != "TOP":
           rootLocalPath = "." + str(rootName)
         else:
           rootLocalPath = str(rootNode.getLocalPath())

@@ -1,6 +1,6 @@
 # ptraverser
 
-Python based traverser.
+Python based [MDSplus](https://mdsplus.org) tree traverser.
 
 ## Introduction
 
